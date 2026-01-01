@@ -1,20 +1,21 @@
 from collections import Counter
 from typing import List, Any
 from .providers.base import ModelResponse
+from .types import AggregationStrategy
 
 
 class ResultAggregator:
     """Aggregates results from multiple chunks"""
 
     def aggregate(
-        self, chunk_results: List[ModelResponse], strategy: str
+        self, chunk_results: List[ModelResponse], strategy: AggregationStrategy
     ) -> Any:
         """
         Combine multiple chunk results into single output
 
         Args:
             chunk_results: List of responses from processing chunks
-            strategy: How to combine ("concatenate", "majority_vote", "average_score")
+            strategy: How to combine (AggregationStrategy enum)
 
         Returns:
             Aggregated result (str, float, or other depending on strategy)
@@ -22,17 +23,17 @@ class ResultAggregator:
         if not chunk_results:
             return ""
 
-        if strategy == "concatenate":
+        if strategy == AggregationStrategy.CONCATENATE:
             return "\n\n".join(r.content for r in chunk_results)
 
-        elif strategy == "majority_vote":
+        elif strategy == AggregationStrategy.MAJORITY_VOTE:
             votes = [r.content.strip() for r in chunk_results]
             if not votes:
                 return ""
             counter = Counter(votes)
             return counter.most_common(1)[0][0]
 
-        elif strategy == "average_score":
+        elif strategy == AggregationStrategy.AVERAGE_SCORE:
             # Try to extract numeric scores
             scores = []
             for result in chunk_results:
