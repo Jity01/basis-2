@@ -3,6 +3,7 @@ from metis_router import (
     Router,
     ModelConfig,
     ChunkingConfig,
+    AggregationStrategy,
     DataSourceType,
     S3StoreConfig,
     MongoDBStoreConfig,
@@ -20,7 +21,7 @@ router = Router(
 )
 
 # Setup Step #2: Connect data sources and use labels
-router.connect_data_source(
+await router.connect_data_source(
     label="my_s3_bucket",
     source_type=DataSourceType.S3,
     store_config=S3StoreConfig(
@@ -31,7 +32,7 @@ router.connect_data_source(
     ),
 )
 
-router.connect_data_source(
+await router.connect_data_source(
     label="my_mongodb",
     source_type=DataSourceType.MONGODB,
     store_config=MongoDBStoreConfig(
@@ -40,7 +41,7 @@ router.connect_data_source(
     ),
 )
 
-router.connect_data_source(
+await router.connect_data_source(
     label="my_postgres",
     source_type=DataSourceType.POSTGRES,
     store_config=PostgresStoreConfig(
@@ -55,7 +56,7 @@ router.add_rule(
         provider="anthropic", model="claude-sonnet-4-20250514", temperature=0.2
     ),
     chunking_config=ChunkingConfig(
-        enabled=True, chunk_size=8000, aggregation="concatenate"
+        enabled=True, chunk_size=8000, aggregation=AggregationStrategy.CONCATENATE
     ),
 )
 
@@ -64,7 +65,9 @@ router.add_rule(
     model_config=ModelConfig(
         provider="anthropic", model="claude-haiku-4-20250101", temperature=0
     ),
-    chunking_config=ChunkingConfig(enabled=True, aggregation="majority_vote"),
+    chunking_config=ChunkingConfig(
+        enabled=True, aggregation=AggregationStrategy.MAJORITY_VOTE
+    ),
 )
 
 # Usage: Route using simple labels 🚀
