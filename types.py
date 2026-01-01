@@ -36,6 +36,14 @@ class ModelConfig:
     system_prompt: Optional[str] = None
 
 
+class AggregationStrategy(Enum):
+    """Aggregation strategies for combining chunk results"""
+
+    CONCATENATE = "concatenate"
+    MAJORITY_VOTE = "majority_vote"
+    AVERAGE_SCORE = "average_score"
+
+
 @dataclass
 class ChunkingConfig:
     """Configuration for chunking behavior"""
@@ -44,7 +52,7 @@ class ChunkingConfig:
     strategy: str = "fixed_size"  # "fixed_size", "semantic", "sliding_window"
     chunk_size: int = 8000  # in tokens
     overlap: int = 500  # tokens of overlap between chunks
-    aggregation: str = "concatenate"  # "concatenate", "majority_vote", "average_score"
+    aggregation: AggregationStrategy = AggregationStrategy.CONCATENATE
 
 
 @dataclass
