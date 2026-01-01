@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="basis-router",
-    version="0.1.0",
+    version="0.1.1",
     author="Your Name",
     author_email="your.email@example.com",
     description="A flexible routing system for managing LLM requests across multiple providers",
