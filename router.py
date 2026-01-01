@@ -84,21 +84,21 @@ class Router:
             self._providers["gemini"] = GeminiProvider(self.config.api_keys["gemini"])
 
     def _get_data_source_handler(self, source_type: DataSourceType):
-        """Get the appropriate data source handler"""
+        """Get a new instance of the appropriate data source handler"""
         handlers = {
-            DataSourceType.S3: S3Handler(),
-            DataSourceType.MONGODB: MongoDBHandler(),
-            DataSourceType.REDIS: RedisHandler(),
-            DataSourceType.POSTGRES: PostgresHandler(),
-            DataSourceType.JSON_FILE: JsonFileHandler(),
-            DataSourceType.CONTENT: ContentHandler(),
+            DataSourceType.S3: S3Handler,
+            DataSourceType.MONGODB: MongoDBHandler,
+            DataSourceType.REDIS: RedisHandler,
+            DataSourceType.POSTGRES: PostgresHandler,
+            DataSourceType.JSON_FILE: JsonFileHandler,
+            DataSourceType.CONTENT: ContentHandler,
         }
-        handler = handlers.get(source_type)
-        if not handler:
+        handler_class = handlers.get(source_type)
+        if not handler_class:
             raise ValueError(
                 f"No handler available for data source type: {source_type}"
             )
-        return handler
+        return handler_class()
 
     def _get_model_provider(self, provider_name: str):
         """Get the appropriate model provider"""
@@ -130,7 +130,7 @@ class Router:
             "chunking_config": chunking_config,
         }
 
-    def connect_data_source(
+    async def connect_data_source(
         self,
         label: str,
         source_type: DataSourceType,
@@ -140,6 +140,7 @@ class Router:
         Connect to a data source for later use (Setup Step #2).
 
         Register data sources that can be referenced by label in route() calls.
+        This initializes the connection which will be reused for all fetch operations.
 
         Args:
             label: Unique identifier for this data source connection
@@ -151,9 +152,17 @@ class Router:
                 - PostgresStoreConfig for DataSourceType.POSTGRES
                 - etc.
         """
+        # Get handler and initialize it
+        handler = self._get_data_source_handler(source_type)
+        if not handler.validate_config(store_config):
+            raise ValueError(f"Invalid config for data source '{label}'")
+
+        await handler.initialize(store_config)
+
         self._data_sources[label] = {
             "type": source_type,
             "config": store_config,
+            "handler": handler,  # Store initialized handler
         }
 
     async def route(
@@ -197,17 +206,12 @@ class Router:
         data_source_info = self._data_sources[store_label]
         rule_info = self._rules[rule_name]
 
-        source_type = data_source_info["type"]
-        store_config = data_source_info["config"]
         model_config = rule_info["model_config"]
         chunking_config = rule_info.get("chunking_config") or ChunkingConfig()
 
-        # Step 1: Fetch data from data source
-        handler = self._get_data_source_handler(source_type)
-        if not handler.validate_config(store_config):
-            raise ValueError(f"Invalid config for data source '{store_label}'")
-
-        content = await handler.fetch(query, store_config)
+        # Step 1: Fetch data from data source using stored handler
+        handler = data_source_info["handler"]
+        content = await handler.fetch(query)
 
         # Step 2: Chunk the content if needed
         chunks = self._chunking_engine.chunk_text(content, chunking_config)
