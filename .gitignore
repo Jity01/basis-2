@@ -12,3 +12,13 @@ __pycache__
 *.pyzwzw
 *.pyzwzwz
 *.pyzwzwzw
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Test results
+tests/test_results/
+*.log
