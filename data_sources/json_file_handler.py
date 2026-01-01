@@ -8,23 +8,30 @@ from ..types import JsonFileStoreConfig, StoreConfig
 class JsonFileHandler(DataSourceHandler):
     """Handler for JSON file data sources"""
 
-    async def fetch(self, query: str, config: StoreConfig) -> str:
+    async def initialize(self, config: StoreConfig) -> None:
+        """Initialize JSON file handler (stores base_path)"""
+        if not isinstance(config, JsonFileStoreConfig):
+            raise ValueError("Config must be JsonFileStoreConfig")
+
+        self._config = config
+        self._initialized = True
+
+    async def fetch(self, query: str) -> str:
         """
         Fetch data from JSON file
 
         Args:
             query: File path to JSON file
-            config: JsonFileStoreConfig instance
 
         Returns:
             Content from JSON file as string
         """
-        if not isinstance(config, JsonFileStoreConfig):
-            raise ValueError("Config must be JsonFileStoreConfig")
+        if not self._initialized:
+            raise RuntimeError("Handler not initialized. Call initialize() first.")
 
         # Resolve path (with optional base_path)
-        if config.base_path:
-            file_path = Path(config.base_path) / query
+        if self._config.base_path:
+            file_path = Path(self._config.base_path) / query
         else:
             file_path = Path(query)
 

@@ -6,14 +6,27 @@ from ..types import StoreConfig
 class DataSourceHandler(ABC):
     """Abstract base class for data source handlers"""
 
+    def __init__(self):
+        self._initialized = False
+        self._config = None
+
     @abstractmethod
-    async def fetch(self, query: str, config: StoreConfig) -> str:
+    async def initialize(self, config: StoreConfig) -> None:
+        """
+        Initialize connection to the data source (called once during connect_data_source)
+
+        Args:
+            config: Store configuration for this data source
+        """
+        pass
+
+    @abstractmethod
+    async def fetch(self, query: str) -> str:
         """
         Fetch data from the data source based on query
 
         Args:
             query: Query/reference string specific to the data source type
-            config: Store configuration for this data source
 
         Returns:
             Extracted text content as string
@@ -30,6 +43,12 @@ class DataSourceHandler(ABC):
 
         Returns:
             True if valid, False otherwise
+        """
+        pass
+
+    async def close(self) -> None:
+        """
+        Close connection to the data source (optional, for cleanup)
         """
         pass
 

@@ -5,17 +5,23 @@ from ..types import StoreConfig
 class ContentHandler(DataSourceHandler):
     """Handler for direct content strings"""
 
-    async def fetch(self, query: str, config: StoreConfig) -> str:
+    async def initialize(self, config: StoreConfig) -> None:
+        """Initialize content handler (no-op)"""
+        self._config = config
+        self._initialized = True
+
+    async def fetch(self, query: str) -> str:
         """
         Return content directly (no fetching needed)
 
         Args:
             query: The content string itself
-            config: Not used for content handler
 
         Returns:
             The query string as-is
         """
+        if not self._initialized:
+            raise RuntimeError("Handler not initialized. Call initialize() first.")
         return query
 
     def validate_config(self, config: StoreConfig) -> bool:

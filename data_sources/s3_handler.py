@@ -1,5 +1,6 @@
 import json
-from typing import Optional
+import boto3
+from botocore.exceptions import ClientError
 from .base import DataSourceHandler
 from ..types import S3StoreConfig, StoreConfig
 
@@ -7,40 +8,37 @@ from ..types import S3StoreConfig, StoreConfig
 class S3Handler(DataSourceHandler):
     """Handler for S3 data sources"""
 
-    async def fetch(self, query: str, config: StoreConfig) -> str:
-        """
-        Fetch data from S3
-
-        Args:
-            query: S3 object key/path (e.g., "logs/agent-123.json")
-            config: S3StoreConfig instance
-
-        Returns:
-            Content from S3 object as string
-        """
+    async def initialize(self, config: StoreConfig) -> None:
+        """Initialize S3 client"""
         if not isinstance(config, S3StoreConfig):
             raise ValueError("Config must be S3StoreConfig")
 
-        try:
-            import boto3
-            from botocore.exceptions import ClientError
-        except ImportError:
-            raise ImportError(
-                "boto3 is required for S3 support. Install with: pip install boto3"
-            )
-
-        # Create S3 client
-        s3_client = boto3.client(
+        self._config = config
+        self.s3_client = boto3.client(
             "s3",
             region_name=config.region,
             aws_access_key_id=config.access_key,
             aws_secret_access_key=config.secret_key,
             endpoint_url=config.endpoint_url,
         )
+        self._initialized = True
+
+    async def fetch(self, query: str) -> str:
+        """
+        Fetch data from S3
+
+        Args:
+            query: S3 object key/path (e.g., "logs/agent-123.json")
+
+        Returns:
+            Content from S3 object as string
+        """
+        if not self._initialized:
+            raise RuntimeError("Handler not initialized. Call initialize() first.")
 
         try:
             # Download object
-            response = s3_client.get_object(Bucket=config.bucket, Key=query)
+            response = self.s3_client.get_object(Bucket=self._config.bucket, Key=query)
             content = response["Body"].read().decode("utf-8")
 
             # If JSON, try to extract text content
