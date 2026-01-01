@@ -1,5 +1,5 @@
 import os
-from metis_router import (
+from router import (
     Router,
     ModelConfig,
     ChunkingConfig,
