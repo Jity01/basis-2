@@ -20,12 +20,7 @@ from .data_sources import (
     JsonFileHandler,
     ContentHandler,
 )
-from .providers import (
-    AnthropicProvider,
-    OpenAIProvider,
-    GeminiProvider,
-    ModelResponse as ProviderResponse,
-)
+from .providers.base import ModelResponse as ProviderResponse
 from .chunking import ChunkingEngine
 from .aggregator import ResultAggregator
 
@@ -72,15 +67,18 @@ class Router:
         self._chunking_engine = ChunkingEngine()
         self._aggregator = ResultAggregator()
 
-        # Initialize providers
+        # Initialize providers (lazy import - only load when needed)
         self._providers: Dict[str, Any] = {}
         if "anthropic" in self.config.api_keys:
+            from .providers.anthropic_provider import AnthropicProvider
             self._providers["anthropic"] = AnthropicProvider(
                 self.config.api_keys["anthropic"]
             )
         if "openai" in self.config.api_keys:
+            from .providers.openai_provider import OpenAIProvider
             self._providers["openai"] = OpenAIProvider(self.config.api_keys["openai"])
         if "gemini" in self.config.api_keys:
+            from .providers.gemini_provider import GeminiProvider
             self._providers["gemini"] = GeminiProvider(self.config.api_keys["gemini"])
 
     def _get_data_source_handler(self, source_type: DataSourceType):
