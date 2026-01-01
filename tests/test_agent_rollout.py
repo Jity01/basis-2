@@ -13,8 +13,7 @@ from pathlib import Path
 
 # Add parent directory to path so router can be imported as a package
 router_dir = Path(__file__).parent.parent
-parent_dir = router_dir.parent
-sys.path.insert(0, str(parent_dir))
+sys.path.insert(0, str(router_dir))
 
 from router import (
     Router,
