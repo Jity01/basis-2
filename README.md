@@ -1,4 +1,4 @@
-# Router
+# Basis Router
 
 A flexible routing system for managing LLM requests across multiple providers (Anthropic, OpenAI, Gemini) with intelligent chunking and result aggregation.
 
@@ -11,8 +11,10 @@ A flexible routing system for managing LLM requests across multiple providers (A
 
 ## Installation
 
+### Basic Installation
+
 ```bash
-pip install -r requirements.txt
+pip install basis-router
 ```
 
 ## Quick Start
