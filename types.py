@@ -69,8 +69,8 @@ class RouterResponse:
 class ContentData:
     """Direct content string data source"""
 
-    type: Literal["content"] = "content"
     content: str
+    type: Literal["content"] = "content"
     task_type: Optional[str] = None  # e.g., "evaluate", "generate", "classify"
     metadata: Optional[Dict[str, Any]] = None  # Additional task-specific fields
 
@@ -79,8 +79,8 @@ class ContentData:
 class JsonPathData:
     """JSON file path data source"""
 
-    type: Literal["json_path"] = "json_path"
     path: str  # Path to JSON file
+    type: Literal["json_path"] = "json_path"
     json_path: Optional[str] = (
         None  # JSONPath expression to extract specific field (e.g., "$.content")
     )
@@ -92,8 +92,8 @@ class JsonPathData:
 class PostgresQueryData:
     """PostgreSQL query data source"""
 
-    type: Literal["postgres_query"] = "postgres_query"
     query: str  # SQL query to execute
+    type: Literal["postgres_query"] = "postgres_query"
     column: Optional[str] = (
         None  # Column name to extract text from (defaults to first text column)
     )
@@ -108,9 +108,9 @@ class PostgresQueryData:
 class DataStoreData:
     """Data stored in a data store (S3, MongoDB, Redis, etc.)"""
 
-    type: Literal["data_store"] = "data_store"
     store_type: str  # e.g., "s3", "mongodb", "redis", "postgres", "dynamodb", "gcs"
     reference: str  # ID, key, path, or query to locate the data
+    type: Literal["data_store"] = "data_store"
     # Examples:
     # - S3: reference = "bucket-name/path/to/file.json"
     # - MongoDB: reference = "collection_name" with query in store_config
