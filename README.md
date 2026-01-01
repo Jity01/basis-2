@@ -347,7 +347,4 @@ class RouterResponse:
 - **majority_vote**: Return the most common result across chunks
 - **average_score**: Average numerical scores from chunks
 
-## License
-
-MIT
 
