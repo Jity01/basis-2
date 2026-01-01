@@ -1,5 +1,6 @@
 import time
 from typing import Optional
+from openai import AsyncOpenAI
 from .base import ModelProvider, ModelResponse
 from ..types import ModelConfig
 
@@ -9,6 +10,7 @@ class OpenAIProvider(ModelProvider):
 
     def __init__(self, api_key: str):
         self.api_key = api_key
+        self.client = AsyncOpenAI(api_key=self.api_key)
 
     async def call(
         self,
@@ -17,14 +19,6 @@ class OpenAIProvider(ModelProvider):
         system_prompt: Optional[str] = None,
     ) -> ModelResponse:
         """Call OpenAI API"""
-        try:
-            from openai import AsyncOpenAI
-        except ImportError:
-            raise ImportError(
-                "openai is required for OpenAI support. Install with: pip install openai"
-            )
-
-        client = AsyncOpenAI(api_key=self.api_key)
 
         # Use system prompt from config or parameter
         sys_prompt = system_prompt or config.system_prompt
@@ -37,7 +31,7 @@ class OpenAIProvider(ModelProvider):
                 messages.append({"role": "system", "content": sys_prompt})
             messages.append({"role": "user", "content": content})
 
-            response = await client.chat.completions.create(
+            response = await self.client.chat.completions.create(
                 model=config.model,
                 messages=messages,
                 temperature=config.temperature,

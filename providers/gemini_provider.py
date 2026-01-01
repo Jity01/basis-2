@@ -1,5 +1,6 @@
 import time
 from typing import Optional
+import google.generativeai as genai
 from .base import ModelProvider, ModelResponse
 from ..types import ModelConfig
 
@@ -9,6 +10,7 @@ class GeminiProvider(ModelProvider):
 
     def __init__(self, api_key: str):
         self.api_key = api_key
+        genai.configure(api_key=self.api_key)
 
     async def call(
         self,
@@ -17,14 +19,6 @@ class GeminiProvider(ModelProvider):
         system_prompt: Optional[str] = None,
     ) -> ModelResponse:
         """Call Gemini API"""
-        try:
-            import google.generativeai as genai
-        except ImportError:
-            raise ImportError(
-                "google-generativeai is required for Gemini support. Install with: pip install google-generativeai"
-            )
-
-        genai.configure(api_key=self.api_key)
 
         start_time = time.time()
 

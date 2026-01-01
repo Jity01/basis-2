@@ -1,5 +1,6 @@
 import time
 from typing import Optional
+from anthropic import AsyncAnthropic
 from .base import ModelProvider, ModelResponse
 from ..types import ModelConfig
 
@@ -9,6 +10,7 @@ class AnthropicProvider(ModelProvider):
 
     def __init__(self, api_key: str):
         self.api_key = api_key
+        self.client = AsyncAnthropic(api_key=self.api_key)
 
     async def call(
         self,
@@ -17,14 +19,6 @@ class AnthropicProvider(ModelProvider):
         system_prompt: Optional[str] = None,
     ) -> ModelResponse:
         """Call Anthropic API"""
-        try:
-            from anthropic import AsyncAnthropic
-        except ImportError:
-            raise ImportError(
-                "anthropic is required for Anthropic support. Install with: pip install anthropic"
-            )
-
-        client = AsyncAnthropic(api_key=self.api_key)
 
         # Use system prompt from config or parameter
         sys_prompt = system_prompt or config.system_prompt
@@ -32,7 +26,7 @@ class AnthropicProvider(ModelProvider):
         start_time = time.time()
 
         try:
-            message = await client.messages.create(
+            message = await self.client.messages.create(
                 model=config.model,
                 max_tokens=config.max_tokens,
                 temperature=config.temperature,
