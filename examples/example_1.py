@@ -1,49 +1,92 @@
-from metis_router import Router, ModelConfig, ChunkingConfig
+import os
+from metis_router import (
+    Router,
+    ModelConfig,
+    ChunkingConfig,
+    DataSourceType,
+    S3StoreConfig,
+    MongoDBStoreConfig,
+    PostgresStoreConfig,
+)
 
-# Initialize router
-router = Router(config={
-    "api_keys": {
-        "anthropic": os.getenv("ANTHROPIC_API_KEY"),
-        "openai": os.getenv("OPENAI_API_KEY")
+# Setup Step #1: Initialize router
+router = Router(
+    config={
+        "api_keys": {
+            "anthropic": os.getenv("ANTHROPIC_API_KEY"),
+            "openai": os.getenv("OPENAI_API_KEY"),
+        }
     }
-})
+)
 
-# Add rules
+# Setup Step #2: Connect data sources and use labels
+router.connect_data_source(
+    label="my_s3_bucket",
+    source_type=DataSourceType.S3,
+    store_config=S3StoreConfig(
+        region="us-east-1",
+        bucket="my-bucket",
+        access_key=os.getenv("AWS_ACCESS_KEY"),
+        secret_key=os.getenv("AWS_SECRET_KEY"),
+    ),
+)
+
+router.connect_data_source(
+    label="my_mongodb",
+    source_type=DataSourceType.MONGODB,
+    store_config=MongoDBStoreConfig(
+        connection_string="mongodb://localhost:27017",
+        database="mydb",
+    ),
+)
+
+router.connect_data_source(
+    label="my_postgres",
+    source_type=DataSourceType.POSTGRES,
+    store_config=PostgresStoreConfig(
+        connection_url=os.getenv("POSTGRES_URL"),
+    ),
+)
+
+# Setup Step #3: Add rules
 router.add_rule(
     name="evaluate_agent",
-    condition=lambda data: data.get("task_type") == "evaluate",
     model_config=ModelConfig(
-        provider="anthropic",
-        model="claude-sonnet-4-20250514",
-        temperature=0.2
+        provider="anthropic", model="claude-sonnet-4-20250514", temperature=0.2
     ),
     chunking_config=ChunkingConfig(
-        enabled=True,
-        chunk_size=8000,
-        aggregation="concatenate"
-    )
+        enabled=True, chunk_size=8000, aggregation="concatenate"
+    ),
 )
 
 router.add_rule(
     name="classify_cheap",
-    condition=lambda data: data.get("task_type") == "classify",
     model_config=ModelConfig(
-        provider="anthropic",
-        model="claude-haiku-4-20250101",
-        temperature=0
+        provider="anthropic", model="claude-haiku-4-20250101", temperature=0
     ),
-    chunking_config=ChunkingConfig(
-        enabled=True,
-        aggregation="majority_vote"
-    )
+    chunking_config=ChunkingConfig(enabled=True, aggregation="majority_vote"),
 )
 
-# Use router
-response = await router.route({
-    "content": "Very long agent interaction log...",
-    "task_type": "evaluate"
-})
+# Usage: Route using simple labels 🚀
+response = await router.route(
+    store_label="my_s3_bucket",
+    query="logs/agent-interaction-123.json",
+    rule_name="evaluate_agent",
+)
 
+response = await router.route(
+    store_label="my_mongodb",
+    query='{"agent_id": "123"}',  # MongoDB query as JSON string
+    rule_name="classify_cheap",
+)
+
+response = await router.route(
+    store_label="my_postgres",
+    query="SELECT content FROM agent_logs WHERE id = 123",
+    rule_name="evaluate_agent",
+)
+
+# Some basic metrics you can use
 print(f"Result: {response.result}")
 print(f"Cost: ${response.metadata['total_cost']}")
 print(f"Chunks processed: {response.metadata['chunks_processed']}")
