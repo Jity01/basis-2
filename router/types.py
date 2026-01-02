@@ -169,17 +169,6 @@ class MongoDBStoreConfig:
 
 
 @dataclass
-class RedisStoreConfig:
-    """Redis store configuration"""
-
-    host: str = "localhost"
-    port: int = 6379
-    db: int = 0
-    password: Optional[str] = None
-    ssl: bool = False
-
-
-@dataclass
 class PostgresStoreConfig:
     """PostgreSQL store configuration"""
 

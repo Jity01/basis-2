@@ -1,13 +1,6 @@
 # Basis Router
 
-A flexible routing system for managing LLM requests across multiple providers (Anthropic, OpenAI, Gemini) with intelligent chunking and result aggregation.
-
-## Features
-
-- Route requests to different LLM providers based on configurable rules
-- Automatic text chunking for large inputs
-- Multiple aggregation strategies for chunk results
-- Cost tracking and metadata collection
+A routing system for providing context to LLM requests across multiple providers (Anthropic, OpenAI, Gemini) with intelligent chunking and result aggregation.
 
 ## Installation
 
@@ -63,9 +56,9 @@ router.connect_data_source(
     ),
 )
 
-# Setup Step #3: Add rules
+# Setup Step #3: Add routing rules
 router.add_rule(
-    name="evaluate_agent",
+    name="evaluate_agent", # task name
     model_config=ModelConfig(
         provider="anthropic",
         model="claude-sonnet-4-20250514",
@@ -78,11 +71,11 @@ router.add_rule(
     )
 )
 
-# Usage: Route using simple labels
+# Usage: Route using simple labels!
 response = await router.route(
     store_label="my_s3_bucket",
-    query="logs/agent-interaction-123.json",
-    rule_name="evaluate_agent",
+    query="logs/agent-interaction-123.json", # actual data to route
+    rule_name="evaluate_agent", # routing rule to route by
 )
 
 print(f"Result: {response.result}")
@@ -100,7 +93,7 @@ The router uses a three-step setup process:
 
 Once setup is complete, routing is simple: just specify the data source label, query, and rule name.
 
-## Configuration
+## Configuration types
 
 ### Router Config
 
@@ -147,7 +140,6 @@ Connect data sources using `connect_data_source()`. Supported types:
 
 - **S3**: Amazon S3 storage
 - **MONGODB**: MongoDB database
-- **REDIS**: Redis key-value store
 - **POSTGRES**: PostgreSQL database
 - **DYNAMODB**: Amazon DynamoDB
 - **GCS**: Google Cloud Storage
@@ -163,7 +155,6 @@ from router import (
     DataSourceType,
     S3StoreConfig,
     MongoDBStoreConfig,
-    RedisStoreConfig,
     PostgresStoreConfig,
     DynamoDBStoreConfig,
     GCSStoreConfig,
@@ -192,16 +183,6 @@ router.connect_data_source(
     ),
 )
 
-# Redis
-router.connect_data_source(
-    label="my_redis",
-    source_type=DataSourceType.REDIS,
-    store_config=RedisStoreConfig(
-        host="localhost",
-        port=6379,
-        db=0,
-    ),
-)
 
 # Postgres
 router.connect_data_source(
@@ -219,7 +200,6 @@ The `query` parameter in `route()` varies by data source type:
 
 - **S3**: File path in bucket (e.g., `"logs/agent-123.json"`)
 - **MongoDB**: Query as JSON string (e.g., `'{"agent_id": "123"}'`) or collection name
-- **Redis**: Key name (e.g., `"agent:log:123"`)
 - **Postgres**: SQL query (e.g., `"SELECT content FROM logs WHERE id = 123"`)
 - **JSON_FILE**: File path (e.g., `"data/logs.json"`)
 - **CONTENT**: The content string itself
