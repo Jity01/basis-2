@@ -1,0 +1,10 @@
+{
+  "title": "Test Document",
+  "content": "This is test content for JSON file handler. It includes some sample data about testing.",
+  "metadata": {
+    "author": "Test Author",
+    "date": "2024-01-01",
+    "tags": ["test", "json", "sample"]
+  }
+}
+
