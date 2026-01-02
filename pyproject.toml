@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "basis-router"
-version = "0.1.1"
+version = "0.1.2"
 description = "A flexible routing system for managing LLM requests across multiple providers with intelligent chunking and result aggregation"
 readme = "README.md"
 requires-python = ">=3.8"
