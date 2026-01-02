@@ -16,6 +16,7 @@ from .data_sources import (
     JsonFileHandler,
     ContentHandler,
 )
+
 # Lazy imports for handlers with optional dependencies
 # These are imported on-demand in _get_data_source_handler
 from .providers.base import ModelResponse as ProviderResponse
@@ -69,14 +70,17 @@ class Router:
         self._providers: Dict[str, Any] = {}
         if "anthropic" in self.config.api_keys:
             from .providers.anthropic_provider import AnthropicProvider
+
             self._providers["anthropic"] = AnthropicProvider(
                 self.config.api_keys["anthropic"]
             )
         if "openai" in self.config.api_keys:
             from .providers.openai_provider import OpenAIProvider
+
             self._providers["openai"] = OpenAIProvider(self.config.api_keys["openai"])
         if "gemini" in self.config.api_keys:
             from .providers.gemini_provider import GeminiProvider
+
             self._providers["gemini"] = GeminiProvider(self.config.api_keys["gemini"])
 
     def _get_data_source_handler(self, source_type: DataSourceType):
@@ -84,16 +88,20 @@ class Router:
         # Lazy import handlers to avoid requiring optional dependencies
         if source_type == DataSourceType.S3:
             from .data_sources import S3Handler
+
             return S3Handler()
         elif source_type == DataSourceType.MONGODB:
             from .data_sources import MongoDBHandler
+
             return MongoDBHandler()
-        elif source_type == DataSourceType.REDIS:
-            from .data_sources import RedisHandler
-            return RedisHandler()
         elif source_type == DataSourceType.POSTGRES:
             from .data_sources import PostgresHandler
+
             return PostgresHandler()
+        elif source_type == DataSourceType.DYNAMODB:
+            from .data_sources import DynamoDBHandler
+
+            return DynamoDBHandler()
         elif source_type == DataSourceType.JSON_FILE:
             return JsonFileHandler()
         elif source_type == DataSourceType.CONTENT:
@@ -151,7 +159,6 @@ class Router:
             store_config: Store-specific configuration matching the source_type
                 - S3StoreConfig for DataSourceType.S3
                 - MongoDBStoreConfig for DataSourceType.MONGODB
-                - RedisStoreConfig for DataSourceType.REDIS
                 - PostgresStoreConfig for DataSourceType.POSTGRES
                 - etc.
         """
@@ -185,7 +192,6 @@ class Router:
             query: Query/reference to get data from the store. Format depends on source type:
                 - S3: File path in bucket (e.g., "logs/agent-123.json")
                 - MongoDB: Query as JSON string (e.g., '{"agent_id": "123"}') or collection name
-                - Redis: Key name (e.g., "agent:log:123")
                 - Postgres: SQL query (e.g., "SELECT content FROM logs WHERE id = 123")
                 - JSON_FILE: File path (e.g., "data/logs.json")
                 - CONTENT: The content string itself

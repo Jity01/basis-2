@@ -106,21 +106,19 @@ class PostgresQueryData:
 
 @dataclass
 class DataStoreData:
-    """Data stored in a data store (S3, MongoDB, Redis, etc.)"""
+    """Data stored in a data store (S3, MongoDB, Postgres, etc.)"""
 
-    store_type: str  # e.g., "s3", "mongodb", "redis", "postgres", "dynamodb", "gcs"
+    store_type: str  # e.g., "s3", "mongodb", "postgres", "dynamodb"
     reference: str  # ID, key, path, or query to locate the data
     type: Literal["data_store"] = "data_store"
     # Examples:
     # - S3: reference = "bucket-name/path/to/file.json"
     # - MongoDB: reference = "collection_name" with query in store_config
-    # - Redis: reference = "key_name"
     # - Postgres: reference = "table_name" with query in store_config
     store_config: Optional[Dict[str, Any]] = None  # Store-specific configuration
     # Examples:
     # - S3: {"region": "us-east-1", "access_key": "...", "secret_key": "..."}
     # - MongoDB: {"database": "mydb", "query": {"_id": "123"}, "field": "content"}
-    # - Redis: {"host": "localhost", "port": 6379, "db": 0}
     # - Postgres: {"query": "SELECT content FROM table WHERE id = $1", "params": ["123"]}
     field: Optional[str] = (
         None  # Field/column name to extract text from (if data is structured)
@@ -139,12 +137,11 @@ class DataSourceType(Enum):
 
     S3 = "s3"
     MONGODB = "mongodb"
-    REDIS = "redis"
     POSTGRES = "postgres"
     DYNAMODB = "dynamodb"
-    GCS = "gcs"  # Google Cloud Storage
     JSON_FILE = "json_file"
     CONTENT = "content"  # Direct content (no connection needed)
+    # Note: REDIS and GCS are not currently implemented but can be added in the future
 
 
 # Store Configuration Types
@@ -187,16 +184,6 @@ class DynamoDBStoreConfig:
 
 
 @dataclass
-class GCSStoreConfig:
-    """Google Cloud Storage store configuration"""
-
-    project_id: str
-    bucket: str
-    credentials_path: Optional[str] = None
-    credentials_json: Optional[Dict[str, Any]] = None
-
-
-@dataclass
 class JsonFileStoreConfig:
     """JSON file store configuration"""
 
@@ -207,9 +194,7 @@ class JsonFileStoreConfig:
 StoreConfig = Union[
     S3StoreConfig,
     MongoDBStoreConfig,
-    RedisStoreConfig,
     PostgresStoreConfig,
     DynamoDBStoreConfig,
-    GCSStoreConfig,
     JsonFileStoreConfig,
 ]
