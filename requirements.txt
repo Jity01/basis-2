@@ -9,9 +9,9 @@ google-generativeai>=0.3.0
 # Data Sources
 boto3>=1.28.0
 pymongo>=4.6.0
-redis>=5.0.0
 asyncpg>=0.29.0
 
 # Utilities
 tiktoken>=0.5.0
+python-dotenv>=1.0.0  # For loading .env files in tests
 

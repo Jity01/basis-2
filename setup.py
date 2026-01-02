@@ -26,27 +26,12 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=[
-        # No core dependencies - all are optional
+        "openai>=1.0.0",
+        "anthropic>=0.18.0",
+        "google-generativeai>=0.3.0",
+        "boto3>=1.28.0",
+        "pymongo>=4.6.0",
+        "asyncpg>=0.29.0",
+        "tiktoken>=0.5.0",
     ],
-    extras_require={
-        "openai": ["openai>=1.0.0"],
-        "anthropic": ["anthropic>=0.18.0"],
-        "gemini": ["google-generativeai>=0.3.0"],
-        "s3": ["boto3>=1.28.0"],
-        "mongodb": ["pymongo>=4.6.0"],
-        "redis": ["redis>=5.0.0"],
-        "postgres": ["asyncpg>=0.29.0"],
-        "chunking": ["tiktoken>=0.5.0"],
-        "all": [
-            "openai>=1.0.0",
-            "anthropic>=0.18.0",
-            "google-generativeai>=0.3.0",
-            "boto3>=1.28.0",
-            "pymongo>=4.6.0",
-            "redis>=5.0.0",
-            "asyncpg>=0.29.0",
-            "tiktoken>=0.5.0",
-        ],
-    },
 )
-
