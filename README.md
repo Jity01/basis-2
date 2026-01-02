@@ -142,9 +142,10 @@ Connect data sources using `connect_data_source()`. Supported types:
 - **MONGODB**: MongoDB database
 - **POSTGRES**: PostgreSQL database
 - **DYNAMODB**: Amazon DynamoDB
-- **GCS**: Google Cloud Storage
 - **JSON_FILE**: Local JSON files
 - **CONTENT**: Direct content strings
+
+> **Note**: GCS (Google Cloud Storage) support is not currently implemented but can be added in the future.
 
 #### Store Configurations
 
@@ -157,7 +158,6 @@ from router import (
     MongoDBStoreConfig,
     PostgresStoreConfig,
     DynamoDBStoreConfig,
-    GCSStoreConfig,
     JsonFileStoreConfig,
 )
 

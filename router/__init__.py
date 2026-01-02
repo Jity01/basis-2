@@ -17,7 +17,6 @@ from .types import (
     RedisStoreConfig,
     PostgresStoreConfig,
     DynamoDBStoreConfig,
-    GCSStoreConfig,
     JsonFileStoreConfig,
 )
 
@@ -40,6 +39,5 @@ __all__ = [
     "RedisStoreConfig",
     "PostgresStoreConfig",
     "DynamoDBStoreConfig",
-    "GCSStoreConfig",
     "JsonFileStoreConfig",
 ]

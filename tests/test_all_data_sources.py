@@ -27,7 +27,6 @@ from router import (
     RedisStoreConfig,
     PostgresStoreConfig,
     DynamoDBStoreConfig,
-    GCSStoreConfig,
     JsonFileStoreConfig,
 )
 
@@ -363,54 +362,6 @@ async def test_dynamodb_source(router: Router) -> Dict[str, Any]:
         return {"type": "DYNAMODB", "success": False, "reason": str(e)}
 
 
-async def test_gcs_source(router: Router) -> Dict[str, Any]:
-    """Test GCS data source type"""
-    print("\n" + "=" * 60)
-    print("Testing GCS Data Source")
-    print("=" * 60)
-
-    gcs_project = os.getenv("GCS_PROJECT_ID")
-    gcs_bucket = os.getenv("GCS_TEST_BUCKET")
-    gcs_credentials = os.getenv("GCS_CREDENTIALS_PATH")
-
-    if not all([gcs_project, gcs_bucket]):
-        print("⚠️  Skipping GCS test - missing credentials")
-        print("   Set: GCS_PROJECT_ID, GCS_TEST_BUCKET")
-        return {"type": "GCS", "success": False, "reason": "Missing credentials"}
-
-    # Connect GCS source
-    await router.connect_data_source(
-        label="test_gcs",
-        source_type=DataSourceType.GCS,
-        store_config=GCSStoreConfig(
-            project_id=gcs_project,
-            bucket=gcs_bucket,
-            credentials_path=gcs_credentials,
-        ),
-    )
-
-    # Test file path
-    test_file_path = "test/test_small.json"
-    print(f"Testing with GCS path: {test_file_path}")
-
-    try:
-        response = await router.route(
-            store_label="test_gcs",
-            query=test_file_path,
-            rule_name="test_rule",
-        )
-        return {
-            "type": "GCS",
-            "success": True,
-            "result_length": len(str(response.result)),
-            "cost": response.metadata.get("total_cost", 0),
-            "tokens": response.metadata.get("total_tokens", 0),
-        }
-    except Exception as e:
-        print(f"⚠️  GCS test failed: {e}")
-        return {"type": "GCS", "success": False, "reason": str(e)}
-
-
 async def main():
     """Run tests for all data source types"""
     print("=" * 60)
@@ -468,7 +419,6 @@ async def main():
     results.append(await test_redis_source(router))
     results.append(await test_postgres_source(router))
     results.append(await test_dynamodb_source(router))
-    results.append(await test_gcs_source(router))
 
     # Print summary
     print("\n" + "=" * 60)
