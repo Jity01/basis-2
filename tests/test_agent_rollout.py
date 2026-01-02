@@ -15,6 +15,15 @@ from pathlib import Path
 router_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(router_dir))
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    env_path = router_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass  # python-dotenv not required, but helpful
+
 from router import (
     Router,
     ModelConfig,

@@ -4,7 +4,10 @@
   "metadata": {
     "author": "Test Author",
     "date": "2024-01-01",
-    "tags": ["test", "json", "sample"]
+    "tags": [
+      "test",
+      "json",
+      "sample"
+    ]
   }
 }
-

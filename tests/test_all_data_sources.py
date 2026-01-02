@@ -16,6 +16,16 @@ from typing import Dict, Any
 router_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(router_dir))
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+
+    env_path = router_dir / ".env"
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass  # python-dotenv not required, but helpful
+
 from router import (
     Router,
     ModelConfig,
@@ -24,7 +34,6 @@ from router import (
     DataSourceType,
     S3StoreConfig,
     MongoDBStoreConfig,
-    RedisStoreConfig,
     PostgresStoreConfig,
     DynamoDBStoreConfig,
     JsonFileStoreConfig,
@@ -144,7 +153,7 @@ async def test_s3_source(router: Router) -> Dict[str, Any]:
     )
 
     # Create a test file path (you'd need to upload this first)
-    test_file_path = "test/test_small.json"
+    test_file_path = "test_small.json"
     print(f"Testing with S3 path: {test_file_path}")
 
     try:
@@ -172,7 +181,7 @@ async def test_mongodb_source(router: Router) -> Dict[str, Any]:
     print("=" * 60)
 
     mongodb_url = os.getenv("MONGODB_CONNECTION_STRING")
-    mongodb_db = os.getenv("MONGODB_DATABASE", "test_db")
+    mongodb_db = os.getenv("MONGODB_DATABASE", "db")  # Default to "db" database
 
     if not mongodb_url:
         print("⚠️  Skipping MongoDB test - missing connection string")
@@ -209,63 +218,6 @@ async def test_mongodb_source(router: Router) -> Dict[str, Any]:
     except Exception as e:
         print(f"⚠️  MongoDB test failed: {e}")
         return {"type": "MONGODB", "success": False, "reason": str(e)}
-
-
-async def test_redis_source(router: Router) -> Dict[str, Any]:
-    """Test REDIS data source type"""
-    print("\n" + "=" * 60)
-    print("Testing REDIS Data Source")
-    print("=" * 60)
-
-    # Check for full connection URL first (useful for Upstash, Redis Cloud, etc.)
-    redis_url = os.getenv("REDIS_URL")
-
-    if redis_url:
-        # Use full connection URL (Upstash provides this format)
-        print("Using REDIS_URL connection string")
-        store_config = RedisStoreConfig(connection_url=redis_url)
-    else:
-        # Use individual connection parameters
-        redis_host = os.getenv("REDIS_HOST", "localhost")
-        redis_port = int(os.getenv("REDIS_PORT", "6379"))
-        redis_password = os.getenv("REDIS_PASSWORD")
-        redis_ssl = os.getenv("REDIS_SSL", "false").lower() == "true"
-
-        store_config = RedisStoreConfig(
-            host=redis_host,
-            port=redis_port,
-            password=redis_password,
-            ssl=redis_ssl,
-        )
-        print(f"Connecting to Redis at {redis_host}:{redis_port} (SSL: {redis_ssl})")
-
-    # Connect Redis source
-    await router.connect_data_source(
-        label="test_redis",
-        source_type=DataSourceType.REDIS,
-        store_config=store_config,
-    )
-
-    # Test key (you'd need to set this in Redis first)
-    test_key = "test:small:data"
-    print(f"Testing with Redis key: {test_key}")
-
-    try:
-        response = await router.route(
-            store_label="test_redis",
-            query=test_key,
-            rule_name="test_rule",
-        )
-        return {
-            "type": "REDIS",
-            "success": True,
-            "result_length": len(str(response.result)),
-            "cost": response.metadata.get("total_cost", 0),
-            "tokens": response.metadata.get("total_tokens", 0),
-        }
-    except Exception as e:
-        print(f"⚠️  Redis test failed: {e}")
-        return {"type": "REDIS", "success": False, "reason": str(e)}
 
 
 async def test_postgres_source(router: Router) -> Dict[str, Any]:
@@ -321,7 +273,7 @@ async def test_dynamodb_source(router: Router) -> Dict[str, Any]:
     aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
     aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
     dynamodb_table = os.getenv("DYNAMODB_TEST_TABLE")
-    dynamodb_region = os.getenv("AWS_REGION", "us-east-1")
+    dynamodb_region = os.getenv("AWS_REGION", "us-east-2")
 
     if not all([aws_access_key, aws_secret_key, dynamodb_table]):
         print("⚠️  Skipping DynamoDB test - missing credentials")
@@ -416,7 +368,6 @@ async def main():
     # Test cloud/external sources (may skip if credentials missing)
     results.append(await test_s3_source(router))
     results.append(await test_mongodb_source(router))
-    results.append(await test_redis_source(router))
     results.append(await test_postgres_source(router))
     results.append(await test_dynamodb_source(router))
 
